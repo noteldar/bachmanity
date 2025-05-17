@@ -40,7 +40,7 @@ class EmailFinderDeps:
     vc_partner: VCPartner
 
 
-def make_agent_email_finder(provider_name="azure", model_name="o3-mini"):
+def make_agent_email_finder(model_name="o3-mini"):
     agent = Agent(
         get_openai_model(model_name),
         system_prompt="""

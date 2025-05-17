@@ -30,16 +30,10 @@ class VCOutreachWorkflowState(TypedDict):
     cold_email: str
 
 
-def get_vc_outreach_workflow(provider_name="azure", model_name="o3-mini"):
-    agent_email_finder = make_agent_email_finder(
-        provider_name=provider_name, model_name=model_name
-    )
-    agent_intro_generator = make_agent_intro_generator(
-        provider_name=provider_name, model_name=model_name
-    )
-    agent_email_drafter = make_agent_email_drafter(
-        provider_name=provider_name, model_name=model_name
-    )
+def get_vc_outreach_workflow(model_name="o3-mini"):
+    agent_email_finder = make_agent_email_finder(model_name=model_name)
+    agent_intro_generator = make_agent_intro_generator(model_name=model_name)
+    agent_email_drafter = make_agent_email_drafter(model_name=model_name)
 
     async def node_email_finder(state: VCOutreachWorkflowState):
         logger.info("Running email finder node")

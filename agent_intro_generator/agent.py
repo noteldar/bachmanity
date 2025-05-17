@@ -55,7 +55,7 @@ class IntroGeneratorDeps:
     mutual_connection: str
 
 
-def make_agent_intro_generator(provider_name="azure", model_name="o3-mini"):
+def make_agent_intro_generator(model_name="o3-mini"):
     agent = Agent(
         get_openai_model(model_name),
         system_prompt="""
