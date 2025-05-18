@@ -82,5 +82,5 @@ def test_introducer_finder():
 
 
 if __name__ == "__main__":
-    # run_workflow()
+    run_workflow()
     test_introducer_finder()
