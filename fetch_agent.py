@@ -12,10 +12,10 @@ from workflow import get_vc_outreach_workflow, Startup, Founder, VCPartner
 load_dotenv()
 
 # Get API token for Agentverse
-API_TOKEN = os.environ["FETCH_AI_API_KEY"]
+API_TOKEN = os.environ["AGENTVERSE_API_KEY"]
 
 if not API_TOKEN:
-    raise ValueError("Please set FETCH_AI_API_KEY environment variable")
+    raise ValueError("Please set AGENTVERSE_API_KEY environment variable")
 
 # Get the workflow graph
 workflow = get_vc_outreach_workflow()
