@@ -1,14 +1,17 @@
-import dotenv
 import asyncio
+import logging
+import os
 import uuid
 
-import logging
-from workflow import get_vc_outreach_workflow, Startup, Founder, VCPartner
+import dotenv
+
+import log
+from agent_introducer_finder.agent import tool_smart_linkedin_mutual_connections
+from workflow import Founder, Startup, VCPartner, get_vc_outreach_workflow
 
 dotenv.load_dotenv()
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger = log.get_logger(__name__)
 
 
 def get_thread_id():
@@ -65,5 +68,19 @@ def run_workflow():
     print(state_dict["cold_email"])
 
 
+@log.add_logger(logger)
+def test_introducer_finder():
+    logger: logging.Logger = test_introducer_finder.logger
+    founder_email = os.getenv("FOUNDER_EMAIL")
+    founder_password = os.getenv("FOUNDER_PASSWORD")
+    vc_linkedin_url = "https://www.linkedin.com/in/noteldar"
+    logger.info("Testing introducer finder agent...")
+    result = tool_smart_linkedin_mutual_connections(
+        founder_email, founder_password, vc_linkedin_url
+    )
+    logger.info(f"Mutual LinkedIn connections: {result}")
+
+
 if __name__ == "__main__":
-    run_workflow()
+    # run_workflow()
+    test_introducer_finder()
