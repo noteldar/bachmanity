@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 from typing import List
+from dataclasses import dataclass
 
 from models import DrafterDeps
 
@@ -27,6 +28,13 @@ load_dotenv()
 
 # Set up basic logger
 logger = log.get_logger(__name__)
+
+
+@dataclass
+class IntroducerFinderDeps:
+    founder_email: str
+    founder_password: str
+    vc_linkedin_url: str
 
 
 async def get_linkedin_mutual_connections(
@@ -82,7 +90,7 @@ def tool_linkedin_mutual_connections(
 
 @log.add_logger(logger)
 async def smart_linkedin_mutual_connections(
-    founder_email: str, founder_password: str, vc_linkedin_url: str, agent, max_steps=30
+    founder_email: str, founder_password: str, vc_linkedin_url: str, max_steps=30
 ) -> list:
     logger: logging.Logger = smart_linkedin_mutual_connections.logger
     with tempfile.TemporaryDirectory() as user_data_dir:
@@ -247,12 +255,14 @@ async def smart_linkedin_mutual_connections(
 
 
 def tool_smart_linkedin_mutual_connections(
-    founder_email: str, founder_password: str, vc_linkedin_url: str
+    ctx: RunContext[IntroducerFinderDeps],
 ) -> list:
-    agent = make_agent_introducer_finder()
+    founder_email = ctx.deps.founder_email
+    founder_password = ctx.deps.founder_password
+    vc_linkedin_url = ctx.deps.vc_linkedin_url
     return asyncio.run(
         smart_linkedin_mutual_connections(
-            founder_email, founder_password, vc_linkedin_url, agent
+            founder_email, founder_password, vc_linkedin_url
         )
     )
 
@@ -263,21 +273,28 @@ def make_agent_introducer_finder(model_name="o3-mini"):
         system_prompt="""
         You are an agent that helps find introductions for founders to VCs.
         Your goal is to log in to LinkedIn using the founder's credentials, open the VC partner's LinkedIn page using the provided URL, go to their connections (or mutual friends if connections is not clickable), and extract the list of mutual connections.
-
-        When logging in, use the following sequence:
-        1. Use browser_type with {\"element\": \"textbox 'Email or phone'\", \"text\": <founder_email>}.
-        2. Use browser_type with {\"element\": \"textbox 'Password'\", \"text\": <founder_password>}.
-        3. Use browser_click with {\"element\": \"button 'Sign in'\"}.
-        4. Use browser_wait_for with {\"text\": \"Home\"} or another indicator of successful login.
-
-        If you see a CAPTCHA or error, reply with {done: true, result: 'CAPTCHA or login error encountered'}.
-
-        After each action, you will see a snapshot of the page and must decide the next best action using the available Playwright MCP tools (browser_navigate, browser_type, browser_click, browser_wait_for, browser_snapshot, browser_screen_capture, etc.).
-        Always reason about what you see in the snapshot. If you reach the goal, reply with {done: true, result: ...}.
         """,
-        deps_type=DrafterDeps,
+        deps_type=IntroducerFinderDeps,
         retries=3,
-        result_type=str,
-        tools=[tool_deep_research, tool_smart_linkedin_mutual_connections],
+        result_type=List[dict],
+        tools=[tool_smart_linkedin_mutual_connections],
     )
+    agent.system_prompt(add_context)
     return agent
+
+
+def add_context(ctx: RunContext[IntroducerFinderDeps]) -> str:
+    return f"""
+    You need to find mutual connections between the founder and the following VC partner on LinkedIn.
+    
+    Founder email: {ctx.deps.founder_email}
+    VC LinkedIn URL: {ctx.deps.vc_linkedin_url}
+    
+    Use the smart_linkedin_mutual_connections tool to:
+    1. Log in to LinkedIn using the founder's credentials
+    2. Navigate to the VC partner's LinkedIn profile
+    3. Access the mutual connections section
+    4. Extract a list of mutual connections
+    
+    Return a list of mutual connections with their names and LinkedIn URLs.
+    """
