@@ -209,7 +209,7 @@ async def smart_linkedin_mutual_connections(
                         "browser_click",
                         {"element": f"link '{mutual_label}'", "ref": mutual_ref},
                     )
-                    logger.info(f"browser_click (mutual connection) result: {result}")
+                    # logger.info(f"browser_click (mutual connection) result: {result}")
                     snapshot = await session.call_tool("browser_snapshot")
                     snapshot_text = snapshot.content[0].text
 
